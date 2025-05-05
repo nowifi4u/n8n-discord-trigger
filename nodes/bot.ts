@@ -9,6 +9,7 @@ import {
     ActionRowBuilder,
     ButtonBuilder,
     ButtonStyle,
+    Partials,
 } from 'discord.js';
 
 import ipc from 'node-ipc';
@@ -33,6 +34,7 @@ export default function () {
         allowedMentions: {
             parse: ['roles', 'users', 'everyone'],
         },
+        partials: [Partials.Message, Partials.Channel, Partials.Reaction],
     });
 
     ipc.config.id = 'bot';
@@ -47,10 +49,10 @@ export default function () {
     client.on('guildMemberAdd', (guildMember) => {
         for (const [nodeId, parameters] of Object.entries(settings.triggerNodes) as [string, any]) {
             try {
-                if('user-join' !== parameters.type)
-                    continue; 
+                if ('user-join' !== parameters.type)
+                    continue;
 
-                if(parameters.guildIds.length && !parameters.guildIds.includes(guildMember.guild.id))
+                if (parameters.guildIds.length && !parameters.guildIds.includes(guildMember.guild.id))
                     continue;
 
                 ipc.server.emit(parameters.socket, 'guildMemberAdd', {
@@ -69,10 +71,10 @@ export default function () {
     client.on('guildMemberRemove', (guildMember) => {
         for (const [nodeId, parameters] of Object.entries(settings.triggerNodes) as [string, any]) {
             try {
-                if('user-leave' !== parameters.type)
-                    continue; 
+                if ('user-leave' !== parameters.type)
+                    continue;
 
-                if(parameters.guildIds.length && !parameters.guildIds.includes(guildMember.guild.id))
+                if (parameters.guildIds.length && !parameters.guildIds.includes(guildMember.guild.id))
                     continue;
 
                 ipc.server.emit(parameters.socket, 'guildMemberRemove', {
@@ -88,13 +90,133 @@ export default function () {
         }
     });
 
+    client.on('messageReactionAdd', async (messageReaction, user) => {
+        let message : any = null;
+
+        for (const [nodeId, parameters] of Object.entries(settings.triggerNodes) as [string, any]) {
+            try {
+                if ('message-reaction-add' !== parameters.type)
+                    continue;
+
+                if (!message) {
+                    // If the message this reaction belongs to was removed, the fetching might result in an API error which should be handled
+                    try {
+                        await messageReaction.fetch();
+                        message = messageReaction.message;
+                    } catch (error) {
+                        console.error('Something went wrong when fetching the message:', error);
+                        continue;
+                    }
+                }
+
+                // ignore messageReactions of other bots
+                const triggerOnExternalBot = parameters.additionalFields?.externalBotTrigger || false;
+                if (!triggerOnExternalBot) {
+                    if (user.bot || user.system) continue;
+                }
+                else if (user.id === message.client.user.id) continue;
+
+                if (parameters.guildIds.length && message.guild && !parameters.guildIds.includes(message.guild.id))
+                    continue;
+
+                if (parameters.messageIds.length && !parameters.messageIds.includes(message.id))
+                    continue;
+
+
+                // check if executed by the proper channel
+                if (parameters.channelIds.length) {
+                    const isInChannel = parameters.channelIds.some((channelId: any) => message.channel.id?.includes(channelId));
+                    if (!isInChannel) continue;
+                }
+
+                // check if executed by the proper role
+                const userRoles = message.member?.roles.cache.map((role: any) => role.id);
+                if (parameters.roleIds.length) {
+                    const hasRole = parameters.roleIds.some((role: any) => userRoles?.includes(role));
+                    if (!hasRole) continue;
+                }
+
+                ipc.server.emit(parameters.socket, 'messageReactionAdd', {
+                    messageReaction: messageReaction,
+                    message: message,
+                    user: user,
+                    guild: message.guild,
+                    nodeId: nodeId
+                });
+
+            } catch (e) {
+                console.log(e);
+            }
+        }
+    });
+
+    client.on('messageReactionRemove', async (messageReaction, user) => {
+        let message : any = null;
+
+        for (const [nodeId, parameters] of Object.entries(settings.triggerNodes) as [string, any]) {
+            try {
+
+                if ('message-reaction-remove' !== parameters.type)
+                    continue;
+
+
+                if (!message) {
+                    try {
+                        await messageReaction.fetch();
+                        message = messageReaction.message;
+                    } catch (error) {
+                        console.error('Something went wrong when fetching the message:', error);
+                        continue;
+                    }
+                }
+
+                // ignore messageReactions of other bots
+                const triggerOnExternalBot = parameters.additionalFields?.externalBotTrigger || false;
+                if (!triggerOnExternalBot) {
+                    if (user.bot || user.system) continue;
+                }
+                else if (user.id === message.client.user.id) continue;
+
+                if (parameters.guildIds.length && message.guild && !parameters.guildIds.includes(message.guild.id))
+                    continue;
+
+                if (parameters.messageIds.length && !parameters.messageIds.includes(message.id))
+                    continue;
+
+                // check if executed by the proper channel
+                if (parameters.channelIds.length) {
+                    const isInChannel = parameters.channelIds.some((channelId: any) => message.channel.id?.includes(channelId));
+                    if (!isInChannel) continue;
+                }
+
+                // check if executed by the proper role
+                const userRoles = message.member?.roles.cache.map((role: any) => role.id);
+                if (parameters.roleIds.length) {
+                    const hasRole = parameters.roleIds.some((role: any) => userRoles?.includes(role));
+                    if (!hasRole) continue;
+                }
+
+                ipc.server.emit(parameters.socket, 'messageReactionRemove', {
+                    messageReaction: messageReaction,
+                    message: message,
+                    user: user,
+                    guild: message.guild,
+                    nodeId: nodeId
+                });
+
+            } catch (e) {
+                console.log(e);
+            }
+        }
+    });
+
     client.on('roleCreate', (role) => {
         for (const [nodeId, parameters] of Object.entries(settings.triggerNodes) as [string, any]) {
             try {
-                if('role-create' !== parameters.type)
-                    continue; 
+                if ('role-create' !== parameters.type)
+                    continue;
 
-                if(parameters.guildIds.length && !parameters.guildIds.includes(role.guild.id))
+                if (parameters.guildIds.length && !parameters.guildIds.includes(role.guild.id))
                     continue;
 
                 ipc.server.emit(parameters.socket, 'roleCreate', {
@@ -112,10 +234,10 @@ export default function () {
     client.on('roleDelete', (role) => {
         for (const [nodeId, parameters] of Object.entries(settings.triggerNodes) as [string, any]) {
             try {
-                if('role-delete' !== parameters.type)
-                    continue; 
+                if ('role-delete' !== parameters.type)
+                    continue;
 
-                if(parameters.guildIds.length && !parameters.guildIds.includes(role.guild.id))
+                if (parameters.guildIds.length && !parameters.guildIds.includes(role.guild.id))
                     continue;
 
                 ipc.server.emit(parameters.socket, 'roleDelete', {
@@ -145,10 +267,10 @@ export default function () {
 
         for (const [nodeId, parameters] of Object.entries(settings.triggerNodes) as [string, any]) {
             try {
-                if('role-update' !== parameters.type)
-                    continue; 
+                if ('role-update' !== parameters.type)
+                    continue;
 
-                if(parameters.guildIds.length && !parameters.guildIds.includes(oldRole.guild.id))
+                if (parameters.guildIds.length && !parameters.guildIds.includes(oldRole.guild.id))
                     continue;
 
                 ipc.server.emit(parameters.socket, 'roleUpdate', {
@@ -174,18 +296,19 @@ export default function () {
         // iterate through all nodes and see if we need to trigger some                
         for (const [nodeId, parameters] of Object.entries(settings.triggerNodes) as [string, any]) {
             try {
-                if('message' !== parameters.type)
-                    continue; 
+                if ('message' !== parameters.type)
+                    continue;
 
                 const pattern = parameters.pattern;
 
                 const triggerOnExternalBot = parameters.additionalFields?.externalBotTrigger || false;
+                const onlyWithAttachments = parameters.additionalFields?.attachmentsRequired || false;
 
                 // ignore messages of other bots
-                if(!triggerOnExternalBot) {
+                if (!triggerOnExternalBot) {
                     if (message.author.bot || message.author.system) continue;
                 }
-                else if(message.author.id === message.client.user.id) continue;
+                else if (message.author.id === message.client.user.id) continue;
 
 
                 // check if executed by the proper role
@@ -243,14 +366,24 @@ export default function () {
 
                 if ((pattern === "botMention" && botMention) || reg.test(message.content)) {
                     // Emit the message data to n8n
-                    ipc.server.emit(parameters.socket, 'messageCreate', {
+
+                    // message create Options 
+                    const messageCreateOptions : any = {
                         message,
                         messageReference,
                         guild: message?.guild,
                         referenceAuthor: messageReference?.author,
                         author: message.author,
-                        nodeId: nodeId
-                    });
+                        nodeId: nodeId,
+                    }
+                    
+                    // check attachments
+                    if (onlyWithAttachments && !message.attachments) continue;
+                    
+                    console.log("attachments", message.attachments);
+                    messageCreateOptions.attachments = message.attachments;
+                    
+                    ipc.server.emit(parameters.socket, 'messageCreate', messageCreateOptions);
                 }
 
             } catch (e) {
@@ -482,7 +615,7 @@ export default function () {
                     const channel = <TextChannel>client.channels.cache.get(nodeParameters.channelId);
                     if (!channel || !channel.isTextBased()) return;
 
-                    let confirmationMessage: Message|null = null;
+                    let confirmationMessage: Message | null = null;
                     // prepare embed messages, if they are set by the client
                     const confirmed = await new Promise<Boolean | null>(async resolve => {
                         const preparedMessage = prepareMessage(nodeParameters);

@@ -71,6 +71,7 @@ For more help on setting up n8n workflows, check the [Try it out documentation](
 
 ## Version history
 
+- **v0.5.0**: Add a reaction trigger on messages, add attachments to message
 - **v0.4.0**: Introduce additional trigger options, such as User joins guild, User leaves guild, Role created, Role deleted or Role updated. 
 - **v0.3.2**: Update for multiple simultaneous trigger nodes with one bot.
 - **v0.3.1**: Added additional option to trigger node to trigger on other bot messages

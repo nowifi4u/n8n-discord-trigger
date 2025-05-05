@@ -102,10 +102,10 @@ export class DiscordTrigger implements INodeType {
                 nodeId: this.getNode().id, // Unique to each node
             });
 
-            ipc.of.bot.on('messageCreate', ({ message, author, guild, nodeId, messageReference, referenceAuthor }: any) => {
+            ipc.of.bot.on('messageCreate', ({ message, author, guild, nodeId, messageReference, attachments, referenceAuthor }: any) => {
                 if( this.getNode().id === nodeId) {
                     
-                    const messageCreateOptions = {
+                    const messageCreateOptions : any = {
                         id: message.id,
                         content: message.content,
                         guildId: guild?.id,
@@ -130,6 +130,10 @@ export class DiscordTrigger implements INodeType {
                         messageCreateOptions.referenceTimestamp = messageReference.createdTimestamp;
                     }
 
+                    if (attachments) {
+                        messageCreateOptions.attachments = attachments;
+                    }
+
                     this.emit([
                         this.helpers.returnJsonArray(messageCreateOptions),
                     ]);
@@ -148,6 +152,23 @@ export class DiscordTrigger implements INodeType {
                 if( this.getNode().id === nodeId) {
                     this.emit([
                         this.helpers.returnJsonArray(guildMember),
+                    ]);
+                }
+            });
+
+            
+            ipc.of.bot.on('messageReactionAdd', ({messageReaction, message, user, guild, nodeId}) => {
+                if( this.getNode().id === nodeId) {
+                    this.emit([
+                        this.helpers.returnJsonArray({...messageReaction, ...user, channelId: message.channelId, guildId: guild.id}),
+                    ]);
+                }
+            });
+            
+            ipc.of.bot.on('messageReactionRemove', ({messageReaction, message, user, guild, nodeId}) => {
+                if(this.getNode().id === nodeId) {
+                    this.emit([
+                        this.helpers.returnJsonArray({...messageReaction, ...user, channelId: message.channelId, guildId: guild.id}),
                     ]);
                 }
             });

@@ -13,6 +13,16 @@ export const options: INodeProperties[] = [
         description: 'When a message is sent in the selected channels',
       },
       {
+				name: 'Reaction Add',
+				value: 'message-reaction-add',
+				description: 'When a reaction is added to a message on the server',
+			},
+      {
+				name: 'Reaction Remove',
+				value: 'message-reaction-remove',
+				description: 'When a reaction is removed from a message on the server',
+			},
+      {
 				name: 'Role Add',
 				value: 'role-create',
 				description: 'When a new role is created on the server',
@@ -48,7 +58,7 @@ export const options: INodeProperties[] = [
     type: 'multiOptions',
     displayOptions: {
       show: {
-        type: ['message', 'user-join', 'user-leave', 'role-create', 'role-delete', 'role-update'],
+        type: ['message', 'user-join', 'user-leave', 'message-reaction-add', 'message-reaction-remove', 'role-create', 'role-delete', 'role-update'],
       },
     },
     typeOptions: {
@@ -68,7 +78,7 @@ export const options: INodeProperties[] = [
     },
     displayOptions: {
       show: {
-        type: ['message'],
+        type: ['message', 'message-reaction-add', 'message-reaction-remove'],
       },
     },
     default: [],
@@ -82,7 +92,7 @@ export const options: INodeProperties[] = [
     type: 'multiOptions',
     displayOptions: {
       show: {
-        type: ['message'],
+        type: ['message', 'message-reaction-add', 'message-reaction-remove'],
       },
     },
     typeOptions: {
@@ -91,6 +101,19 @@ export const options: INodeProperties[] = [
     },
     default: [],
     description: 'The same logic apply here for roles, except it is optional. If you don\'t select any role it will listen to @everyone. Choose from the list, or specify IDs using an <a href="https://docs.n8n.io/code/expressions/">expression</a>.',
+  },
+  {
+    displayName: 'Listen to Message',
+    placeholder: 'e.g. 1366875632994232201',
+    name: 'messageIds',
+    type: 'string',
+    displayOptions: {
+      show: {
+        type: ['message-reaction-add', 'message-reaction-remove'],
+      },
+    },
+    default: '',
+    description: 'If entered the reaction will only trigger on the predefined messages',
   },
   {
     displayName: 'Pattern',
@@ -209,6 +232,13 @@ export const options: INodeProperties[] = [
         type: 'boolean',
         default: false,
         description: "Whether this node triggers when another bot sends a message",
+      },
+      {
+        displayName: 'Attachment(s) Required',
+        name: 'attachmentsRequired',
+        type: 'boolean',
+        default: false,
+        description: "Whether this node needs to have at least one attachment to be triggered",
       },
     ],									
   }
