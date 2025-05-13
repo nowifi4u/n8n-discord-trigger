@@ -433,4 +433,25 @@ export const options: INodeProperties[] = [
         default: [],
         description: 'Let you specify roles you want to mention in the message. Your credentials must be set and the bot running, you also need at least one role (apart from @everyone) available. If you do not meet these requirements, make the changes then close and reopen the modal. Choose from the list, or specify IDs using an <a href="https://docs.n8n.io/code/expressions/">expression</a>.',
     },
+    {
+    displayName: 'Additional Fields',
+    name: 'additionalConfirmationFields',
+    type: 'collection',
+    default: {},
+    placeholder: 'Add Field',
+    displayOptions: {
+            show: {
+                type: ['confirm'],
+            },
+        },
+    options: [
+      {
+        displayName: 'Confirmation Timeout (in seconds)',
+        name: 'timeout',
+        type: 'number',
+        default: 60,
+        description: "Timeout for the confirmation message. If the user does not respond within this time, the interaction will be considered as expired.",
+      },
+    ],									
+  }
 ];

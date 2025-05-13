@@ -616,6 +616,12 @@ export default function () {
                     if (!channel || !channel.isTextBased()) return;
 
                     let confirmationMessage: Message | null = null;
+
+                    let collectorTimeout = 60 * 1000; // 1 minute
+                    if (nodeParameters.additionalConfirmationFields.timeout > 0) {
+                        collectorTimeout = parseInt(nodeParameters.additionalConfirmationFields.timeout) * 1000;
+                    }
+
                     // prepare embed messages, if they are set by the client
                     const confirmed = await new Promise<Boolean | null>(async resolve => {
                         const preparedMessage = prepareMessage(nodeParameters);
@@ -624,7 +630,7 @@ export default function () {
 
                         const collector = channel.createMessageComponentCollector({
                             max: 1, // The number of times a user can click on the button
-                            time: 10000, // The amount of time the collector is valid for in milliseconds,
+                            time: collectorTimeout, // The amount of time the collector is valid for in milliseconds,
                         });
                         let isResolved = false;
                         collector.on("collect", (interaction) => {
