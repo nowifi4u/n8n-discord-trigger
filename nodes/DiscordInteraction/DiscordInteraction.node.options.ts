@@ -446,7 +446,7 @@ export const options: INodeProperties[] = [
         },
     options: [
       {
-        displayName: 'Confirmation Timeout (in seconds)',
+        displayName: 'Confirmation Timeout (in Seconds)',
         name: 'timeout',
         type: 'number',
         default: 60,
