@@ -1,5 +1,5 @@
 {
-  "name": "n8n-nodes-discord-trigger",
+  "name": "@nowifi4u/n8n-nodes-discord-trigger",
   "version": "0.5.1",
   "description": "A node that triggers a workflow whenever a message from discord is sent.",
   "keywords": [
@@ -13,12 +13,11 @@
   "license": "MIT",
   "homepage": "",
   "author": {
-    "name": "katerlol",
-    "email": "katerlol@proton.me"
+    "name": "nowifi4u"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/katerlol/n8n-discord-trigger"
+    "url": "https://github.com/nowifi4u/n8n-discord-trigger"
   },
   "engines": {
     "node": ">=18.10",
