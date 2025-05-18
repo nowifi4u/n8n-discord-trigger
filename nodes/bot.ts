@@ -370,6 +370,7 @@ export default function () {
                     // message create Options 
                     const messageCreateOptions : any = {
                         message,
+                        channel: message.channel,
                         messageReference,
                         guild: message?.guild,
                         referenceAuthor: messageReference?.author,

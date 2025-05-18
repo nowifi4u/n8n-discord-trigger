@@ -102,7 +102,7 @@ export class DiscordTrigger implements INodeType {
                 nodeId: this.getNode().id, // Unique to each node
             });
 
-            ipc.of.bot.on('messageCreate', ({ message, author, guild, nodeId, messageReference, attachments, referenceAuthor }: any) => {
+            ipc.of.bot.on('messageCreate', ({ message, channel, author, guild, nodeId, messageReference, attachments, referenceAuthor }: any) => {
                 if( this.getNode().id === nodeId) {
                     
                     const messageCreateOptions : any = {
@@ -110,6 +110,7 @@ export class DiscordTrigger implements INodeType {
                         content: message.content,
                         guildId: guild?.id,
                         channelId: message.channelId,
+                        parentId: channel.parentId,
                         authorId: author.id,
                         authorName: author.username,
                         timestamp: message.createdTimestamp,
